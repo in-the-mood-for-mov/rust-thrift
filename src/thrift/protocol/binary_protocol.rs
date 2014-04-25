@@ -1,5 +1,5 @@
 use protocol::{
-  MessageType, PeBadVersion, Protocol, protocol_exception, Stop, Type
+  MessageType, Protocol, Stop, Type
 };
 use transport::Transport;
 
@@ -119,7 +119,7 @@ impl Protocol for BinaryProtocol {
     let header = self.read_i32();
     let version = (header >> 16) as u16;
     if version != BINARY_PROTOCOL_VERSION_1 {
-      protocol_exception::cond.raise(PeBadVersion(version.to_str( )));
+      fail!(format!("unknown protocol version: {}", version))
     };
     let name = self.read_string();
     let raw_type = header | 0xff;
@@ -181,31 +181,31 @@ impl Protocol for BinaryProtocol {
   }
 
   fn read_byte(&mut self) -> i8 {
-    self.transport.read_i8()
+    self.transport.read_i8().unwrap()
   }
 
   fn read_i16(&mut self) -> i16 {
-    self.transport.read_be_i16()
+    self.transport.read_be_i16().unwrap()
   }
 
   fn read_i32(&mut self) -> i32 {
-    self.transport.read_be_i32()
+    self.transport.read_be_i32().unwrap()
   }
 
   fn read_i64(&mut self) -> i64 {
-    self.transport.read_be_i64()
+    self.transport.read_be_i64().unwrap()
   }
 
   fn read_double(&mut self) -> f64 {
-    self.transport.read_be_f64()
+    self.transport.read_be_f64().unwrap()
   }
 
   fn read_string(&mut self) -> ~str {
-    str::from_utf8_owned(self.read_binary())
+    str::from_utf8_owned(self.read_binary()).unwrap()
   }
 
   fn read_binary(&mut self) -> ~[u8] {
     let len = self.read_i32() as uint;
-    self.transport.read_bytes(len)
+    self.transport.read_exact(len).unwrap()
   }
 }

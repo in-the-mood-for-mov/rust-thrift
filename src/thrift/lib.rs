@@ -1,7 +1,6 @@
-#[crate_id = "thrift#0.1"];
+#![crate_id = "thrift#0.1"]
 
-extern mod std;
-extern mod extra;
+extern crate std;
 
 pub mod protocol;
 pub mod transport;

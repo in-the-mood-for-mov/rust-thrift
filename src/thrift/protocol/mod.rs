@@ -1,17 +1,5 @@
 pub mod binary_protocol;
 
-pub enum ProtocolExceptionType {
-  PeUnknown,
-  PeInvalidData,
-  PeNegativeSize,
-  PeSizeLimit,
-  PeBadVersion(~str)
-}
-
-condition! {
-  pub protocol_exception: super::ProtocolExceptionType -> ();
-}
-
 #[deriving(Eq, FromPrimitive)]
 pub enum Type {
   Stop = 0x00,
