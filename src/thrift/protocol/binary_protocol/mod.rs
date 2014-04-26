@@ -8,10 +8,14 @@ use std::str;
 static BINARY_PROTOCOL_VERSION_1: u16 = 0x8001;
 
 pub struct BinaryProtocol {
-  priv transport: ~Transport
+  transport: ~Transport
 }
 
 impl BinaryProtocol {
+  fn new(transport: ~Transport) -> BinaryProtocol {
+    BinaryProtocol { transport: transport }
+  }
+
   fn write_type(&mut self, type_: Type) {
     self.write_byte(type_ as i8);
   }
@@ -20,7 +24,7 @@ impl BinaryProtocol {
     let raw = self.read_byte();
     match FromPrimitive::from_i8(raw) {
       Some(type_) => type_,
-      None => fail!(format!("unknown type {}", raw)),
+      None => fail!("unknown type {}", raw),
     }
   }
 }
@@ -87,23 +91,38 @@ impl Protocol for BinaryProtocol {
   }
 
   fn write_byte(&mut self, value: i8) {
-    self.transport.write_i8(value);
+    match self.transport.write_i8(value) {
+      Ok(_) => (),
+      Err(e) => fail!(e),
+    }
   }
 
   fn write_i16(&mut self, value: i16) {
-    self.transport.write_be_i16(value);
+    match self.transport.write_be_i16(value) {
+      Ok(_) => (),
+      Err(e) => fail!(e),
+    }
   }
 
   fn write_i32(&mut self, value: i32) {
-    self.transport.write_be_i32(value);
+    match self.transport.write_be_i32(value) {
+      Ok(_) => (),
+      Err(e) => fail!(e),
+    }
   }
 
   fn write_i64(&mut self, value: i64) {
-    self.transport.write_be_i64(value);
+    match self.transport.write_be_i64(value) {
+      Ok(_) => (),
+      Err(e) => fail!(e),
+    }
   }
 
   fn write_double(&mut self, value: f64) {
-    self.transport.write_be_f64(value);
+    match self.transport.write_be_f64(value) {
+      Ok(_) => (),
+      Err(e) => fail!(e),
+    }
   }
 
   fn write_string(&mut self, value: &str) {
@@ -112,20 +131,23 @@ impl Protocol for BinaryProtocol {
 
   fn write_binary(&mut self, value: &[u8]) {
     self.write_i32(value.len() as i32);
-    self.transport.write(value);
+    match self.transport.write(value) {
+      Ok(_) => (),
+      Err(e) => fail!(e),
+    }
   }
 
   fn read_message_begin(&mut self) -> (~str, MessageType, i32) {
     let header = self.read_i32();
     let version = (header >> 16) as u16;
     if version != BINARY_PROTOCOL_VERSION_1 {
-      fail!(format!("unknown protocol version: {}", version))
+      fail!("unknown protocol version: {}", version);
     };
     let name = self.read_string();
     let raw_type = header | 0xff;
     let message_type = match FromPrimitive::from_i32(raw_type) {
       Some(t) => t,
-      None => fail!(format!("unknown message type {}", raw_type)),
+      None => fail!("unknown message type {}", raw_type),
     };
     let sequence_id = self.read_i32();
     (name, message_type, sequence_id)
@@ -175,8 +197,8 @@ impl Protocol for BinaryProtocol {
 
   fn read_bool(&mut self) -> bool {
     match self.read_byte() {
-      1 => true,
-      _ => false
+      0 => false,
+      _ => true,
     }
   }
 
@@ -209,3 +231,6 @@ impl Protocol for BinaryProtocol {
     self.transport.read_exact(len).unwrap()
   }
 }
+
+#[cfg(test)]
+pub mod test;
