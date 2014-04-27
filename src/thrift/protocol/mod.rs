@@ -1,27 +1,27 @@
 pub mod binary_protocol;
 
-#[deriving(Eq, FromPrimitive)]
+#[deriving(Eq, FromPrimitive, Show)]
 pub enum Type {
-  Stop = 0x00,
-  Void = 0x01,
-  Bool = 0x02,
-  Byte = 0x03,
-  Double = 0x04,
-  I16 = 0x06,
-  I32 = 0x08,
-  I64 = 0x0a,
-  String = 0x0b,
-  Struct = 0x0c,
-  Map = 0x0d,
-  Set = 0x0e,
-  List = 0x0f
+  TStop = 0x00,
+  TVoid = 0x01,
+  TBool = 0x02,
+  TByte = 0x03,
+  TDouble = 0x04,
+  TI16 = 0x06,
+  TI32 = 0x08,
+  TI64 = 0x0a,
+  TString = 0x0b,
+  TStruct = 0x0c,
+  TMap = 0x0d,
+  TSet = 0x0e,
+  TList = 0x0f
 }
 
-#[deriving(Eq, FromPrimitive)]
+#[deriving(Eq, FromPrimitive, Show)]
 pub enum MessageType {
-  Call = 0x01,
-  Reply = 0x02,
-  Exception = 0x03,
+  MtCall = 0x01,
+  MtReply = 0x02,
+  MtException = 0x03,
 }
 
 pub trait Protocol {

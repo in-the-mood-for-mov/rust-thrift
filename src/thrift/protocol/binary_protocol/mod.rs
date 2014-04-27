@@ -1,9 +1,7 @@
-use protocol::{
-  MessageType, Protocol, Stop, Type
-};
+use std;
+use protocol;
+use protocol::{ MessageType, Protocol, Type };
 use transport::Transport;
-
-use std::str;
 
 static BINARY_PROTOCOL_VERSION_1: u16 = 0x8001;
 
@@ -61,7 +59,7 @@ impl Protocol for BinaryProtocol {
   fn write_field_end(&mut self) { }
 
   fn write_field_stop(&mut self) {
-    self.write_byte(Stop as i8);
+    self.write_byte(protocol::TStop as i8);
   }
 
   fn write_map_begin(&mut self, key_type: Type, value_type: Type, size: i32) {
@@ -141,13 +139,13 @@ impl Protocol for BinaryProtocol {
     let header = self.read_i32();
     let version = (header >> 16) as u16;
     if version != BINARY_PROTOCOL_VERSION_1 {
-      fail!("unknown protocol version: {}", version);
+      fail!("unknown protocol version: {:x}", version);
     };
     let name = self.read_string();
-    let raw_type = header | 0xff;
+    let raw_type = header & 0xff;
     let message_type = match FromPrimitive::from_i32(raw_type) {
       Some(t) => t,
-      None => fail!("unknown message type {}", raw_type),
+      None => fail!("unknown message type {:x}", raw_type),
     };
     let sequence_id = self.read_i32();
     (name, message_type, sequence_id)
@@ -162,10 +160,10 @@ impl Protocol for BinaryProtocol {
   fn read_field_begin(&mut self) -> (~str, Type, i16) {
     let field_type = self.read_type();
     let field_id = match field_type {
-      Stop => 0,
-      _ => self.read_i16()
+      protocol::TStop => 0,
+      _ => self.read_i16(),
     };
-    (box "", field_type, field_id)
+    (~"", field_type, field_id)
   }
 
   fn read_field_end(&mut self) { }
@@ -223,7 +221,7 @@ impl Protocol for BinaryProtocol {
   }
 
   fn read_string(&mut self) -> ~str {
-    str::from_utf8_owned(self.read_binary()).unwrap()
+    std::str::from_utf8_owned(self.read_binary()).unwrap()
   }
 
   fn read_binary(&mut self) -> ~[u8] {
