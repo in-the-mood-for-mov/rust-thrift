@@ -5,21 +5,15 @@ use transport::Transport;
 
 static BINARY_PROTOCOL_VERSION_1: u16 = 0x8001;
 
-pub struct BinaryProtocol {
-  transport: ~Transport
-}
+pub struct BinaryProtocol;
 
 impl BinaryProtocol {
-  fn new(transport: ~Transport) -> BinaryProtocol {
-    BinaryProtocol { transport: transport }
+  fn write_type(&self, transport: &mut Transport, type_: Type) {
+    self.write_byte(transport, type_ as i8);
   }
 
-  fn write_type(&mut self, type_: Type) {
-    self.write_byte(type_ as i8);
-  }
-
-  fn read_type(&mut self) -> Type {
-    let raw = self.read_byte();
+  fn read_type(&self, transport: &mut Transport) -> Type {
+    let raw = self.read_byte(transport);
     match FromPrimitive::from_i8(raw) {
       Some(type_) => type_,
       None => fail!("unknown type {}", raw),
@@ -29,204 +23,204 @@ impl BinaryProtocol {
 
 impl Protocol for BinaryProtocol {
   fn write_message_begin(
-    &mut self,
+    &self, transport: &mut Transport,
     name: &str,
     message_type: MessageType,
     sequence_id: i32
   ) {
     let version = BINARY_PROTOCOL_VERSION_1 as i32 | message_type as i32;
-    self.write_i32(version);
-    self.write_string(name);
-    self.write_i32(sequence_id);
+    self.write_i32(transport, version);
+    self.write_string(transport, name);
+    self.write_i32(transport, sequence_id);
   }
 
-  fn write_message_end(&mut self) { }
+  fn write_message_end(&self, transport: &mut Transport) { }
 
-  fn write_struct_begin(&mut self, _name: &str) { }
+  fn write_struct_begin(&self, transport: &mut Transport, _name: &str) { }
 
-  fn write_struct_end(&mut self) { }
+  fn write_struct_end(&self, transport: &mut Transport) { }
 
   fn write_field_begin(
-    &mut self,
+    &self, transport: &mut Transport,
     _name: &str,
     field_type: Type,
     field_id: i16
   ) {
-    self.write_type(field_type);
-    self.write_i16(field_id);
+    self.write_type(transport, field_type);
+    self.write_i16(transport, field_id);
   }
 
-  fn write_field_end(&mut self) { }
+  fn write_field_end(&self, transport: &mut Transport) { }
 
-  fn write_field_stop(&mut self) {
-    self.write_byte(protocol::TStop as i8);
+  fn write_field_stop(&self, transport: &mut Transport) {
+    self.write_byte(transport, protocol::TStop as i8);
   }
 
-  fn write_map_begin(&mut self, key_type: Type, value_type: Type, size: i32) {
-    self.write_type(key_type);
-    self.write_type(value_type);
-    self.write_i32(size);
+  fn write_map_begin(&self, transport: &mut Transport, key_type: Type, value_type: Type, size: i32) {
+    self.write_type(transport, key_type);
+    self.write_type(transport, value_type);
+    self.write_i32(transport, size);
   }
 
-  fn write_map_end(&mut self) { }
+  fn write_map_end(&self, transport: &mut Transport) { }
 
-  fn write_list_begin(&mut self, elem_type: Type, size: i32) {
-    self.write_type(elem_type);
-    self.write_i32(size);
+  fn write_list_begin(&self, transport: &mut Transport, elem_type: Type, size: i32) {
+    self.write_type(transport, elem_type);
+    self.write_i32(transport, size);
   }
 
-  fn write_list_end(&mut self) { }
+  fn write_list_end(&self, transport: &mut Transport) { }
 
-  fn write_set_begin(&mut self, elem_type: Type, size: i32) {
-    self.write_type(elem_type);
-    self.write_i32(size);
+  fn write_set_begin(&self, transport: &mut Transport, elem_type: Type, size: i32) {
+    self.write_type(transport, elem_type);
+    self.write_i32(transport, size);
   }
 
-  fn write_set_end(&mut self) { }
+  fn write_set_end(&self, transport: &mut Transport) { }
 
-  fn write_bool(&mut self, value: bool) {
-    self.write_byte(value as i8);
+  fn write_bool(&self, transport: &mut Transport, value: bool) {
+    self.write_byte(transport, value as i8);
   }
 
-  fn write_byte(&mut self, value: i8) {
-    match self.transport.write_i8(value) {
+  fn write_byte(&self, transport: &mut Transport, value: i8) {
+    match transport.write_i8(value) {
       Ok(_) => (),
       Err(e) => fail!(e),
     }
   }
 
-  fn write_i16(&mut self, value: i16) {
-    match self.transport.write_be_i16(value) {
+  fn write_i16(&self, transport: &mut Transport, value: i16) {
+    match transport.write_be_i16(value) {
       Ok(_) => (),
       Err(e) => fail!(e),
     }
   }
 
-  fn write_i32(&mut self, value: i32) {
-    match self.transport.write_be_i32(value) {
+  fn write_i32(&self, transport: &mut Transport, value: i32) {
+    match transport.write_be_i32(value) {
       Ok(_) => (),
       Err(e) => fail!(e),
     }
   }
 
-  fn write_i64(&mut self, value: i64) {
-    match self.transport.write_be_i64(value) {
+  fn write_i64(&self, transport: &mut Transport, value: i64) {
+    match transport.write_be_i64(value) {
       Ok(_) => (),
       Err(e) => fail!(e),
     }
   }
 
-  fn write_double(&mut self, value: f64) {
-    match self.transport.write_be_f64(value) {
+  fn write_double(&self, transport: &mut Transport, value: f64) {
+    match transport.write_be_f64(value) {
       Ok(_) => (),
       Err(e) => fail!(e),
     }
   }
 
-  fn write_string(&mut self, value: &str) {
-    self.write_binary(value.as_bytes());
+  fn write_string(&self, transport: &mut Transport, value: &str) {
+    self.write_binary(transport, value.as_bytes());
   }
 
-  fn write_binary(&mut self, value: &[u8]) {
-    self.write_i32(value.len() as i32);
-    match self.transport.write(value) {
+  fn write_binary(&self, transport: &mut Transport, value: &[u8]) {
+    self.write_i32(transport, value.len() as i32);
+    match transport.write(value) {
       Ok(_) => (),
       Err(e) => fail!(e),
     }
   }
 
-  fn read_message_begin(&mut self) -> (~str, MessageType, i32) {
-    let header = self.read_i32();
+  fn read_message_begin(&self, transport: &mut Transport) -> (~str, MessageType, i32) {
+    let header = self.read_i32(transport);
     let version = (header >> 16) as u16;
     if version != BINARY_PROTOCOL_VERSION_1 {
       fail!("unknown protocol version: {:x}", version);
     };
-    let name = self.read_string();
+    let name = self.read_string(transport);
     let raw_type = header & 0xff;
     let message_type = match FromPrimitive::from_i32(raw_type) {
       Some(t) => t,
       None => fail!("unknown message type {:x}", raw_type),
     };
-    let sequence_id = self.read_i32();
+    let sequence_id = self.read_i32(transport);
     (name, message_type, sequence_id)
   }
 
-  fn read_message_end(&mut self) { }
+  fn read_message_end(&self, transport: &mut Transport) { }
 
-  fn read_struct_begin(&mut self) -> ~str { ~"" }
+  fn read_struct_begin(&self, transport: &mut Transport) -> ~str { "".to_owned() }
 
-  fn read_struct_end(&mut self) { }
+  fn read_struct_end(&self, transport: &mut Transport) { }
 
-  fn read_field_begin(&mut self) -> (~str, Type, i16) {
-    let field_type = self.read_type();
+  fn read_field_begin(&self, transport: &mut Transport) -> (~str, Type, i16) {
+    let field_type = self.read_type(transport);
     let field_id = match field_type {
       protocol::TStop => 0,
-      _ => self.read_i16(),
+      _ => self.read_i16(transport),
     };
-    (~"", field_type, field_id)
+    ("".to_owned(), field_type, field_id)
   }
 
-  fn read_field_end(&mut self) { }
+  fn read_field_end(&self, transport: &mut Transport) { }
 
-  fn read_map_begin(&mut self) -> (Type, Type, i32) {
-    let key_type = self.read_type();
-    let value_type = self.read_type();
-    let size = self.read_i32();
+  fn read_map_begin(&self, transport: &mut Transport) -> (Type, Type, i32) {
+    let key_type = self.read_type(transport);
+    let value_type = self.read_type(transport);
+    let size = self.read_i32(transport);
     (key_type, value_type, size)
   }
 
-  fn read_map_end(&mut self) { }
+  fn read_map_end(&self, transport: &mut Transport) { }
 
-  fn read_list_begin(&mut self) -> (Type, i32) {
-    let elem_type = self.read_type();
-    let size = self.read_i32();
+  fn read_list_begin(&self, transport: &mut Transport) -> (Type, i32) {
+    let elem_type = self.read_type(transport);
+    let size = self.read_i32(transport);
     (elem_type, size)
   }
 
-  fn read_list_end(&mut self) { }
+  fn read_list_end(&self, transport: &mut Transport) { }
 
-  fn read_set_begin(&mut self) -> (Type, i32) {
-    let elem_type = self.read_type();
-    let size = self.read_i32();
+  fn read_set_begin(&self, transport: &mut Transport) -> (Type, i32) {
+    let elem_type = self.read_type(transport);
+    let size = self.read_i32(transport);
     (elem_type, size)
   }
 
-  fn read_set_end(&mut self) { }
+  fn read_set_end(&self, transport: &mut Transport) { }
 
-  fn read_bool(&mut self) -> bool {
-    match self.read_byte() {
+  fn read_bool(&self, transport: &mut Transport) -> bool {
+    match self.read_byte(transport) {
       0 => false,
       _ => true,
     }
   }
 
-  fn read_byte(&mut self) -> i8 {
-    self.transport.read_i8().unwrap()
+  fn read_byte(&self, transport: &mut Transport) -> i8 {
+    transport.read_i8().unwrap()
   }
 
-  fn read_i16(&mut self) -> i16 {
-    self.transport.read_be_i16().unwrap()
+  fn read_i16(&self, transport: &mut Transport) -> i16 {
+    transport.read_be_i16().unwrap()
   }
 
-  fn read_i32(&mut self) -> i32 {
-    self.transport.read_be_i32().unwrap()
+  fn read_i32(&self, transport: &mut Transport) -> i32 {
+    transport.read_be_i32().unwrap()
   }
 
-  fn read_i64(&mut self) -> i64 {
-    self.transport.read_be_i64().unwrap()
+  fn read_i64(&self, transport: &mut Transport) -> i64 {
+    transport.read_be_i64().unwrap()
   }
 
-  fn read_double(&mut self) -> f64 {
-    self.transport.read_be_f64().unwrap()
+  fn read_double(&self, transport: &mut Transport) -> f64 {
+    transport.read_be_f64().unwrap()
   }
 
-  fn read_string(&mut self) -> ~str {
-    std::str::from_utf8_owned(self.read_binary()).unwrap()
+  fn read_string(&self, transport: &mut Transport) -> ~str {
+    StrBuf::from_utf8(self.read_binary(transport)).unwrap().into_owned()
   }
 
-  fn read_binary(&mut self) -> ~[u8] {
-    let len = self.read_i32() as uint;
-    self.transport.read_exact(len).unwrap()
+  fn read_binary(&self, transport: &mut Transport) -> Vec<u8> {
+    let len = self.read_i32(transport) as uint;
+    transport.read_exact(len).unwrap()
   }
 }
 
