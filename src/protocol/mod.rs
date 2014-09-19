@@ -2,7 +2,7 @@ use transport::Transport;
 
 pub mod binary_protocol;
 
-#[deriving(Eq, FromPrimitive, Show)]
+#[deriving(Eq, PartialEq, FromPrimitive, Show)]
 pub enum Type {
   TStop = 0x00,
   TVoid = 0x01,
@@ -19,7 +19,7 @@ pub enum Type {
   TList = 0x0f
 }
 
-#[deriving(Eq, FromPrimitive, Show)]
+#[deriving(Eq, PartialEq, FromPrimitive, Show)]
 pub enum MessageType {
   MtCall = 0x01,
   MtReply = 0x02,
@@ -73,13 +73,13 @@ pub trait Protocol {
   fn write_string(&self, transport: &mut Transport, value: &str);
   fn write_binary(&self, transport: &mut Transport, value: &[u8]);
 
-  fn read_message_begin(&self, transport: &mut Transport) -> (~str, MessageType, i32);
+  fn read_message_begin(&self, transport: &mut Transport) -> (String, MessageType, i32);
   fn read_message_end(&self, transport: &mut Transport);
 
-  fn read_struct_begin(&self, transport: &mut Transport) -> ~str;
+  fn read_struct_begin(&self, transport: &mut Transport) -> String;
   fn read_struct_end(&self, transport: &mut Transport);
 
-  fn read_field_begin(&self, transport: &mut Transport) -> (~str, Type, i16);
+  fn read_field_begin(&self, transport: &mut Transport) -> (String, Type, i16);
   fn read_field_end(&self, transport: &mut Transport);
 
   fn read_map_begin(&self, transport: &mut Transport) -> (Type, Type, i32);
@@ -97,6 +97,6 @@ pub trait Protocol {
   fn read_i32(&self, transport: &mut Transport) -> i32;
   fn read_i64(&self, transport: &mut Transport) -> i64;
   fn read_double(&self, transport: &mut Transport) -> f64;
-  fn read_string(&self, transport: &mut Transport) -> ~str;
+  fn read_string(&self, transport: &mut Transport) -> String;
   fn read_binary(&self, transport: &mut Transport) -> Vec<u8>;
 }

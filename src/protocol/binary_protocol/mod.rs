@@ -1,4 +1,3 @@
-use std;
 use protocol;
 use protocol::{ MessageType, Protocol, Type };
 use transport::Transport;
@@ -34,11 +33,11 @@ impl Protocol for BinaryProtocol {
     self.write_i32(transport, sequence_id);
   }
 
-  fn write_message_end(&self, transport: &mut Transport) { }
+  fn write_message_end(&self, _transport: &mut Transport) { }
 
-  fn write_struct_begin(&self, transport: &mut Transport, _name: &str) { }
+  fn write_struct_begin(&self, _transport: &mut Transport, _name: &str) { }
 
-  fn write_struct_end(&self, transport: &mut Transport) { }
+  fn write_struct_end(&self, _transport: &mut Transport) { }
 
   fn write_field_begin(
     &self, transport: &mut Transport,
@@ -50,7 +49,7 @@ impl Protocol for BinaryProtocol {
     self.write_i16(transport, field_id);
   }
 
-  fn write_field_end(&self, transport: &mut Transport) { }
+  fn write_field_end(&self, _transport: &mut Transport) { }
 
   fn write_field_stop(&self, transport: &mut Transport) {
     self.write_byte(transport, protocol::TStop as i8);
@@ -62,21 +61,21 @@ impl Protocol for BinaryProtocol {
     self.write_i32(transport, size);
   }
 
-  fn write_map_end(&self, transport: &mut Transport) { }
+  fn write_map_end(&self, _transport: &mut Transport) { }
 
   fn write_list_begin(&self, transport: &mut Transport, elem_type: Type, size: i32) {
     self.write_type(transport, elem_type);
     self.write_i32(transport, size);
   }
 
-  fn write_list_end(&self, transport: &mut Transport) { }
+  fn write_list_end(&self, _transport: &mut Transport) { }
 
   fn write_set_begin(&self, transport: &mut Transport, elem_type: Type, size: i32) {
     self.write_type(transport, elem_type);
     self.write_i32(transport, size);
   }
 
-  fn write_set_end(&self, transport: &mut Transport) { }
+  fn write_set_end(&self, _transport: &mut Transport) { }
 
   fn write_bool(&self, transport: &mut Transport, value: bool) {
     self.write_byte(transport, value as i8);
@@ -129,7 +128,7 @@ impl Protocol for BinaryProtocol {
     }
   }
 
-  fn read_message_begin(&self, transport: &mut Transport) -> (~str, MessageType, i32) {
+  fn read_message_begin(&self, transport: &mut Transport) -> (String, MessageType, i32) {
     let header = self.read_i32(transport);
     let version = (header >> 16) as u16;
     if version != BINARY_PROTOCOL_VERSION_1 {
@@ -145,22 +144,22 @@ impl Protocol for BinaryProtocol {
     (name, message_type, sequence_id)
   }
 
-  fn read_message_end(&self, transport: &mut Transport) { }
+  fn read_message_end(&self, _transport: &mut Transport) { }
 
-  fn read_struct_begin(&self, transport: &mut Transport) -> ~str { "".to_owned() }
+  fn read_struct_begin(&self, _transport: &mut Transport) -> String { String::from_str("") }
 
-  fn read_struct_end(&self, transport: &mut Transport) { }
+  fn read_struct_end(&self, _transport: &mut Transport) { }
 
-  fn read_field_begin(&self, transport: &mut Transport) -> (~str, Type, i16) {
+  fn read_field_begin(&self, transport: &mut Transport) -> (String, Type, i16) {
     let field_type = self.read_type(transport);
     let field_id = match field_type {
       protocol::TStop => 0,
       _ => self.read_i16(transport),
     };
-    ("".to_owned(), field_type, field_id)
+    (String::from_str(""), field_type, field_id)
   }
 
-  fn read_field_end(&self, transport: &mut Transport) { }
+  fn read_field_end(&self, _transport: &mut Transport) { }
 
   fn read_map_begin(&self, transport: &mut Transport) -> (Type, Type, i32) {
     let key_type = self.read_type(transport);
@@ -169,7 +168,7 @@ impl Protocol for BinaryProtocol {
     (key_type, value_type, size)
   }
 
-  fn read_map_end(&self, transport: &mut Transport) { }
+  fn read_map_end(&self, _transport: &mut Transport) { }
 
   fn read_list_begin(&self, transport: &mut Transport) -> (Type, i32) {
     let elem_type = self.read_type(transport);
@@ -177,7 +176,7 @@ impl Protocol for BinaryProtocol {
     (elem_type, size)
   }
 
-  fn read_list_end(&self, transport: &mut Transport) { }
+  fn read_list_end(&self, _transport: &mut Transport) { }
 
   fn read_set_begin(&self, transport: &mut Transport) -> (Type, i32) {
     let elem_type = self.read_type(transport);
@@ -185,7 +184,7 @@ impl Protocol for BinaryProtocol {
     (elem_type, size)
   }
 
-  fn read_set_end(&self, transport: &mut Transport) { }
+  fn read_set_end(&self, _transport: &mut Transport) { }
 
   fn read_bool(&self, transport: &mut Transport) -> bool {
     match self.read_byte(transport) {
@@ -214,8 +213,8 @@ impl Protocol for BinaryProtocol {
     transport.read_be_f64().unwrap()
   }
 
-  fn read_string(&self, transport: &mut Transport) -> ~str {
-    StrBuf::from_utf8(self.read_binary(transport)).unwrap().into_owned()
+  fn read_string(&self, transport: &mut Transport) -> String {
+    String::from_utf8(self.read_binary(transport)).unwrap()
   }
 
   fn read_binary(&self, transport: &mut Transport) -> Vec<u8> {
