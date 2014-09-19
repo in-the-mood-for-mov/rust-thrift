@@ -1,4 +1,2 @@
-/build/
-/bin/
-/lib/
+/target/
 Cargo.lock
