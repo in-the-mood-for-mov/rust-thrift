@@ -15,7 +15,7 @@ impl BinaryProtocol {
     let raw = self.read_byte(transport);
     match FromPrimitive::from_i8(raw) {
       Some(type_) => type_,
-      None => fail!("unknown type {}", raw),
+      None => panic!("unknown type {}", raw),
     }
   }
 }
@@ -84,35 +84,35 @@ impl Protocol for BinaryProtocol {
   fn write_byte(&self, transport: &mut Transport, value: i8) {
     match transport.write_i8(value) {
       Ok(_) => (),
-      Err(e) => fail!(e),
+      Err(e) => panic!(e),
     }
   }
 
   fn write_i16(&self, transport: &mut Transport, value: i16) {
     match transport.write_be_i16(value) {
       Ok(_) => (),
-      Err(e) => fail!(e),
+      Err(e) => panic!(e),
     }
   }
 
   fn write_i32(&self, transport: &mut Transport, value: i32) {
     match transport.write_be_i32(value) {
       Ok(_) => (),
-      Err(e) => fail!(e),
+      Err(e) => panic!(e),
     }
   }
 
   fn write_i64(&self, transport: &mut Transport, value: i64) {
     match transport.write_be_i64(value) {
       Ok(_) => (),
-      Err(e) => fail!(e),
+      Err(e) => panic!(e),
     }
   }
 
   fn write_double(&self, transport: &mut Transport, value: f64) {
     match transport.write_be_f64(value) {
       Ok(_) => (),
-      Err(e) => fail!(e),
+      Err(e) => panic!(e),
     }
   }
 
@@ -124,7 +124,7 @@ impl Protocol for BinaryProtocol {
     self.write_i32(transport, value.len() as i32);
     match transport.write(value) {
       Ok(_) => (),
-      Err(e) => fail!(e),
+      Err(e) => panic!(e),
     }
   }
 
@@ -132,13 +132,13 @@ impl Protocol for BinaryProtocol {
     let header = self.read_i32(transport);
     let version = (header >> 16) as u16;
     if version != BINARY_PROTOCOL_VERSION_1 {
-      fail!("unknown protocol version: {:x}", version);
+      panic!("unknown protocol version: {:x}", version);
     };
     let name = self.read_string(transport);
     let raw_type = header & 0xff;
     let message_type = match FromPrimitive::from_i32(raw_type) {
       Some(t) => t,
-      None => fail!("unknown message type {:x}", raw_type),
+      None => panic!("unknown message type {:x}", raw_type),
     };
     let sequence_id = self.read_i32(transport);
     (name, message_type, sequence_id)
