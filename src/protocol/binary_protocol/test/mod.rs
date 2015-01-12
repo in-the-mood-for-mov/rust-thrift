@@ -89,29 +89,29 @@ pub fn read_binary() {
 pub fn read_set_begin() {
   let transport = &mut FakeTransport::new(vec!(0x0b, 0x00, 0x00, 0x01, 0x0f));
   let protocol = BinaryProtocol;
-  assert_eq!(protocol.read_set_begin(transport), (protocol::TString, 0x0000010f));
+  assert_eq!(protocol.read_set_begin(transport), (protocol::Type::TString, 0x0000010f));
 }
 
 #[test]
 pub fn read_list_begin() {
   let transport = &mut FakeTransport::new(vec!(0x0b, 0x00, 0x00, 0x01, 0x0f));
   let protocol = BinaryProtocol;
-  assert_eq!(protocol.read_list_begin(transport), (protocol::TString, 0x0000010f));
+  assert_eq!(protocol.read_list_begin(transport), (protocol::Type::TString, 0x0000010f));
 }
 
 #[test]
 pub fn read_map_begin() {
   let transport = &mut FakeTransport::new(vec!(0x0b, 0x08, 0x00, 0x00, 0x01, 0x0f));
   let protocol = BinaryProtocol;
-  assert_eq!(protocol.read_map_begin(transport), (protocol::TString, protocol::TI32, 0x0000010f));
+  assert_eq!(protocol.read_map_begin(transport), (protocol::Type::TString, protocol::Type::TI32, 0x0000010f));
 }
 
 #[test]
 pub fn read_field_begin() {
   let transport = &mut FakeTransport::new(vec!(0x00, 0x0d, 0x14, 0x0e));
   let protocol = BinaryProtocol;
-  assert_eq!(protocol.read_field_begin(transport), (String::from_str(""), protocol::TStop, 0));
-  assert_eq!(protocol.read_field_begin(transport), (String::from_str(""), protocol::TMap, 0x140e));
+  assert_eq!(protocol.read_field_begin(transport), (String::from_str(""), protocol::Type::TStop, 0));
+  assert_eq!(protocol.read_field_begin(transport), (String::from_str(""), protocol::Type::TMap, 0x140e));
 }
 
 #[test]
@@ -122,5 +122,5 @@ pub fn read_message_begin() {
     0x00, 0x02, 0x47, 0x1e
   ));
   let protocol = BinaryProtocol;
-  assert_eq!(protocol.read_message_begin(transport), (String::from_str("foo"), protocol::MtCall, 0x0002471e));
+  assert_eq!(protocol.read_message_begin(transport), (String::from_str("foo"), protocol::MessageType::MtCall, 0x0002471e));
 }
