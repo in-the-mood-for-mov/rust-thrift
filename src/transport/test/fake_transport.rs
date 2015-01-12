@@ -26,7 +26,7 @@ impl Writer for FakeTransport {
 }
 
 impl Reader for FakeTransport {
-  fn read(&mut self, buf: &mut [u8]) -> IoResult<uint> {
+  fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
     self.reader.read(buf)
   }
 }

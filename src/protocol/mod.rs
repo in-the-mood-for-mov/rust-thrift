@@ -2,7 +2,7 @@ use transport::Transport;
 
 pub mod binary_protocol;
 
-#[deriving(Eq, PartialEq, FromPrimitive, Show)]
+#[derive(Eq, PartialEq, FromPrimitive, Show)]
 pub enum Type {
   TStop = 0x00,
   TVoid = 0x01,
@@ -19,7 +19,7 @@ pub enum Type {
   TList = 0x0f
 }
 
-#[deriving(Eq, PartialEq, FromPrimitive, Show)]
+#[derive(Eq, PartialEq, FromPrimitive, Show)]
 pub enum MessageType {
   MtCall = 0x01,
   MtReply = 0x02,

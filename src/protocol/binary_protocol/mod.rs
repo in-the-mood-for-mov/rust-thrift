@@ -1,6 +1,7 @@
 use protocol;
 use protocol::{ MessageType, Protocol, Type };
 use transport::Transport;
+use std::num::FromPrimitive;
 
 static BINARY_PROTOCOL_VERSION_1: u16 = 0x8001;
 
@@ -52,7 +53,7 @@ impl Protocol for BinaryProtocol {
   fn write_field_end(&self, _transport: &mut Transport) { }
 
   fn write_field_stop(&self, transport: &mut Transport) {
-    self.write_byte(transport, protocol::TStop as i8);
+    self.write_byte(transport, protocol::Type::TStop as i8);
   }
 
   fn write_map_begin(&self, transport: &mut Transport, key_type: Type, value_type: Type, size: i32) {
@@ -153,7 +154,7 @@ impl Protocol for BinaryProtocol {
   fn read_field_begin(&self, transport: &mut Transport) -> (String, Type, i16) {
     let field_type = self.read_type(transport);
     let field_id = match field_type {
-      protocol::TStop => 0,
+      protocol::Type::TStop => 0,
       _ => self.read_i16(transport),
     };
     (String::from_str(""), field_type, field_id)
@@ -218,7 +219,7 @@ impl Protocol for BinaryProtocol {
   }
 
   fn read_binary(&self, transport: &mut Transport) -> Vec<u8> {
-    let len = self.read_i32(transport) as uint;
+    let len = self.read_i32(transport) as usize;
     transport.read_exact(len).unwrap()
   }
 }
